@@ -14,6 +14,10 @@
 docker-compose up -d
 ```
 
+## 访问服务
+
+`nginx` 将会守候 80 端口，除了默认主机外，还有一个域名为 `www.example.com` 的虚拟主机。可以在本机 `/etc/hosts` 中添加一条绑定，然后访问 http://www.example.com 
+
 ## 停止服务
 
 ```
