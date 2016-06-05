@@ -1,0 +1,25 @@
+version: '2'
+services:
+    php:
+      image: php:7-fpm
+      links:
+        - mysql:mysql
+      volumes:
+        - ./conf/php.conf:/usr/local/etc/php/conf.d/php.conf
+        - ./site:/var/www/test
+    nginx:
+      image: nginx:latest
+      ports:
+        - "80:80"
+      links:
+        - php
+      volumes:
+        - ./conf/nginx.conf:/etc/nginx/conf.d/nginx.conf
+        - ./site:/var/www/test
+    mysql:
+      image: mysql:latest
+      volumes:
+        - ./conf/mysql.cnf:/etc/mysql/conf.d/mysql.cnf
+        - mysql-data:/var/lib/mysql
+volumes:
+    mysql-data: {}
