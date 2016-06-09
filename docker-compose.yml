@@ -6,24 +6,24 @@ services:
         dockerfile: Dockerfile-php
       links:
         - mysql:mysql
-      volumes:
-        - ./conf/php.conf:/usr/local/etc/php/conf.d/php.conf
-        - ./site:/var/www/site
     nginx:
-      image: nginx:latest
+      build:
+        context: .
+        dockerfile: Dockerfile-nginx
       ports:
         - "80:80"
       links:
         - php
-      volumes:
-        - ./conf/nginx.conf:/etc/nginx/conf.d/nginx.conf
-        - ./site:/var/www/site
     mysql:
-      image: mysql:latest
+      build:
+        context: .
+        dockerfile: Dockerfile-mysql
       volumes:
-        - ./conf/mysql.cnf:/etc/mysql/conf.d/mysql.cnf
         - mysql-data:/var/lib/mysql
       environment:
           MYSQL_ROOT_PASSWORD: Passw0rd
 volumes:
     mysql-data: {}
+networks:
+    default:
+        driver: overlay
