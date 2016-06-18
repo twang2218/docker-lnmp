@@ -1,7 +1,4 @@
 <?php
-
-
-
 $servername = "mysql";
 $username = "root";
 $password = "Passw0rd";
@@ -11,9 +8,9 @@ $conn = new mysqli($servername, $username, $password);
 
 // Check connection
 if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+    die("连接错误: " . $conn->connect_error);
 }
-echo "Connected MySQL successfully";
+echo "<h1>成功连接 MySQL 服务器</h1>";
 
 phpinfo();
 
