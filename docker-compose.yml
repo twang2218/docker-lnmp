@@ -1,23 +1,17 @@
 version: '2'
 services:
     php:
-      build:
-        context: .
-        dockerfile: Dockerfile-php
+      build: ./php/.
       links:
         - mysql:mysql
     nginx:
-      build:
-        context: .
-        dockerfile: Dockerfile-nginx
+      build: ./nginx/.
       ports:
         - "80:80"
       links:
         - php
     mysql:
-      build:
-        context: .
-        dockerfile: Dockerfile-mysql
+      build: ./mysql/.
       volumes:
         - mysql-data:/var/lib/mysql
       environment:
