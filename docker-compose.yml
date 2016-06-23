@@ -1,23 +1,27 @@
 version: '2'
 services:
     php:
-      build: ./php/.
-      links:
-        - mysql:mysql
+        build:
+            context: ./nginx-php
+            dockerfile: Dockerfile.php
+        links:
+            - mysql:mysql
     nginx:
-      build: ./nginx/.
-      ports:
-        - "80:80"
-      links:
-        - php
+        build:
+            context: ./nginx-php
+            dockerfile: Dockerfile.nginx
+        ports:
+            - "80:80"
+        links:
+            - php
     mysql:
-      build: ./mysql/.
-      volumes:
-        - mysql-data:/var/lib/mysql
-      environment:
-          MYSQL_ROOT_PASSWORD: Passw0rd
+        build: ./mysql/.
+        volumes:
+            - mysql-data:/var/lib/mysql
+        environment:
+            MYSQL_ROOT_PASSWORD: Passw0rd
 volumes:
     mysql-data: {}
 networks:
     default:
-        driver: overlay
+        driver: bridge # overlay

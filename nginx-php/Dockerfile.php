@@ -12,5 +12,5 @@ RUN apt-get update \
     && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
     && docker-php-ext-install gd \
     && rm -rf /var/cache/apt/*
-COPY ./conf/php.conf /usr/local/etc/php/conf.d/php.conf
+COPY ./php.conf /usr/local/etc/php/conf.d/php.conf
 COPY ./site /var/www/site
