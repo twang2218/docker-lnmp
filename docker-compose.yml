@@ -4,14 +4,10 @@ services:
         image: twang2218/lnmp-nginx
         ports:
             - "80:80"
-        links:
-            - php
         networks:
             - frontend
     php:
         image: twang2218/lnmp-php
-        links:
-            - mysql:mysql
         networks:
             - frontend
             - backend
@@ -27,6 +23,4 @@ volumes:
     mysql-data: {}
 networks:
     frontend:
-        driver: overlay
     backend:
-        driver: overlay
