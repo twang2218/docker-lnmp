@@ -47,6 +47,8 @@ function create_store {
     eval $(docker-machine env ${NAME})
     HostIP=$(docker-machine ip ${NAME})
     export KVSTORE="etcd://${HostIP}:2379"
+    echo "Wait 10 seconds for the docker daemon ..."
+    sleep 10
     docker run -d \
         -p 4001:4001 -p 2380:2380 -p 2379:2379 \
         --restart=always \
