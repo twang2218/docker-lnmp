@@ -1,27 +1,32 @@
 version: '2'
 services:
-    php:
-        build:
-            context: ./nginx-php
-            dockerfile: Dockerfile.php
-        links:
-            - mysql:mysql
     nginx:
-        build:
-            context: ./nginx-php
-            dockerfile: Dockerfile.nginx
+        image: twang2218/lnmp-nginx
         ports:
             - "80:80"
         links:
             - php
+        networks:
+            - frontend
+    php:
+        image: twang2218/lnmp-php
+        links:
+            - mysql:mysql
+        networks:
+            - frontend
+            - backend
     mysql:
-        build: ./mysql/.
+        image: twang2218/lnmp-mysql
         volumes:
             - mysql-data:/var/lib/mysql
         environment:
             MYSQL_ROOT_PASSWORD: Passw0rd
+        networks:
+            - backend
 volumes:
     mysql-data: {}
 networks:
-    default:
-        driver: bridge # overlay
+    frontend:
+        driver: overlay
+    backend:
+        driver: overlay
