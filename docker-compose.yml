@@ -9,6 +9,8 @@ services:
             - ./site:/usr/share/nginx/html:ro
         networks:
             - frontend
+        depends_on:
+            - php
     php:
         build: ./php/.
         volumes:
@@ -17,6 +19,8 @@ services:
         networks:
             - frontend
             - backend
+        depends_on:
+            - mysql
     mysql:
         image: mysql:latest
         volumes:
