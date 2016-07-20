@@ -21,9 +21,14 @@ RUN set -xe \
     && apt-get install -y ${runtimeDeps} ${buildDeps} --no-install-recommends \
 # "编译安装 php 组件"
     && docker-php-ext-install iconv mcrypt mysqli pdo pdo_mysql zip \
-    && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
+    && docker-php-ext-configure gd \
+        --with-freetype-dir=/usr/include/ \
+        --with-jpeg-dir=/usr/include/ \
     && docker-php-ext-install gd \
 # "清理"
-    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false -o APT::AutoRemove::SuggestsImportant=false $buildDeps \
+    && apt-get purge -y --auto-remove \
+        -o APT::AutoRemove::RecommendsImportant=false \
+        -o APT::AutoRemove::SuggestsImportant=false \
+        $buildDeps \
     && rm -rf /var/cache/apt/* \
     && rm -rf /var/lib/apt/lists/*
