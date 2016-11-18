@@ -1,4 +1,5 @@
 FROM php:7-fpm
+ENV TZ=Asia/Shanghai
 COPY sources.list /etc/apt/sources.list
 RUN set -xe \
     && echo "构建依赖" \
@@ -33,3 +34,6 @@ RUN set -xe \
         $buildDeps \
     && rm -rf /var/cache/apt/* \
     && rm -rf /var/lib/apt/lists/*
+
+COPY ./php.conf /usr/local/etc/php/conf.d/php.conf
+COPY ./site /usr/share/nginx/html
