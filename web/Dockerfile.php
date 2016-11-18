@@ -22,6 +22,7 @@ RUN set -xe \
         libpng12-0 \
     " \
     && echo "安装 php 以及编译构建组件所需包" \
+    && DEBIAN_FRONTEND=noninteractive \
     && apt-get update \
     && apt-get install -y ${runtimeDeps} ${buildDeps} --no-install-recommends \
     && echo "编译安装 php 组件" \
