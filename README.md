@@ -256,6 +256,8 @@ docker-compose up -d
 
 *如果构建过程中，发现镜像下载极为缓慢、甚至失败。这是伟大的墙在捣乱。你需要去配置加速器，具体文章可以参看我的 [Docker 问答录](http://blog.lab99.org/post/docker-2016-07-14-faq.html#docker-pull-hao-man-a-zen-me-ban)。*
 
+如果修改了配置文件，可能需要明确重新构建，可以使用命令 `docker-compose build`。
+
 ## 查看服务状态
 
 ```bash
