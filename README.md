@@ -13,11 +13,13 @@
 ```yml
 services:
     nginx:
+        image: "${DOCKER_USER}/lnmp-nginx:v1.0"
         build:
             context: ./web
             dockerfile: Dockerfile.nginx
         ...
     php:
+        image: "${DOCKER_USER}/lnmp-nginx:v1.0"
         build:
             context: ./web
             dockerfile: Dockerfile.php
@@ -26,6 +28,24 @@ services:
         image: mysql:5.7
         ...
 ```
+
+其中 `mysql` 服务中的 `image: mysql:5.7` 是表明使用的是 `mysql:5.7` 这个镜像。而 `nginx` 和 `php` 服务中的 `image` 含义更为复杂。一方面是说，要使用其中名字的镜像，另一方面，如果这个镜像不存在，则利用其下方指定的 `build` 指令进行构建。在单机环境，这里的 `image` 并非必须，只保留 `build` 就可以。但是在 Swarm 环境中，需要集群中全体主机使用同一个镜像，每个机器自己构建就不合适了，指定了 `image` 后，就可以在单机 `build` 并 `push` 到 registry，然后在集群中执行 `up` 的时候，才可以自动从 registry 下载所需镜像。
+
+这里的镜像名看起来也有些不同：
+
+```bash
+image: "${DOCKER_USER}/lnmp-nginx:v1.0"
+```
+
+其中的 `${DOCKER_USER}` 这种用法是环境变量替换，当存在环境变量 `DOCKER_USER` 时，将会用其值替换 `${DOCKER_USER}`。而环境变量从哪里来呢？除了在 Shell 中 `export` 对应的环境变量外，Docker Compose 还支持一个默认的环境变量文件，既 `.env` 文件。你可以在项目中看到，`docker-compose.yml` 的同级目录下，存在一个 `.env` 文件，里面定义了环境变量。
+
+```bash
+DOCKER_USER=twang2218
+```
+
+每次执行 `docker-compose` 命令的时候，这个 `.env` 文件就会自动被加载，所以是一个用来定制 compose 文件非常方便的地方。这里我只定义了一个环境变量 `DOCKER_USER`，当然，可以继续一行一个定义更多的环境变量。
+
+初次之外，还可以明确指定环境变量文件。具体的配置请查看 [`docker-compose` 官方文档](https://docs.docker.com/compose/compose-file/#envfile)。
 
 ## 镜像
 
