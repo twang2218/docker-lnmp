@@ -1,4 +1,5 @@
 [mysqld]
 
 default_time_zone = '+08:00'
+log_timestamps = SYSTEM
 sql_mode = NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
