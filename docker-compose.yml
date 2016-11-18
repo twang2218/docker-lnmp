@@ -26,7 +26,7 @@ services:
         environment:
             TZ: 'Asia/Shanghai'
             MYSQL_ROOT_PASSWORD: Passw0rd
-        command: ['mysqld', '--default-time-zone=Asia/Shanghai']
+        command: ['mysqld', '--character-set-server=utf8']
         networks:
             - backend
 volumes:

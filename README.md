@@ -40,13 +40,13 @@ services:
         environment:
             TZ: 'Asia/Shanghai'
             MYSQL_ROOT_PASSWORD: Passw0rd
-        command: ['mysqld', '--default-time-zone=Asia/Shanghai']
+        command: ['mysqld', '--character-set-server=utf8']
         ...
 ```
 
 在这个例子中，`mysql` 服务就通过环境变量 `MYSQL_ROOT_PASSWORD`，设定了 MySQL 数据库初始密码为 `Passw0rd`，并且通过 `TZ` 环境变量指定了国内时区。
 
-并且，我重新指定了启动容器的命令，在 `command` 中，添加了额外的参数。`--default-time-zone=Asia/Shanghai`。
+并且，我重新指定了启动容器的命令，在 `command` 中，添加了额外的参数。`--character-set-server=utf8`，指定了默认字符集。
 
 ### nginx 服务镜像
 
