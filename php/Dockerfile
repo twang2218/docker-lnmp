@@ -1,6 +1,6 @@
 FROM php:7-fpm
 RUN set -xe \
-# "构建依赖"
+    && echo "构建依赖" \
     && buildDeps=" \
         build-essential \
         php5-dev \
@@ -9,23 +9,23 @@ RUN set -xe \
         libmcrypt-dev \
         libpng12-dev \
     " \
-# "运行依赖"
+    && echo "运行依赖" \
     && runtimeDeps=" \
         libfreetype6 \
         libjpeg62-turbo \
         libmcrypt4 \
         libpng12-0 \
     " \
-# "安装 php 以及编译构建组件所需包"
+    && echo "安装 php 以及编译构建组件所需包" \
     && apt-get update \
     && apt-get install -y ${runtimeDeps} ${buildDeps} --no-install-recommends \
-# "编译安装 php 组件"
+    && echo "编译安装 php 组件" \
     && docker-php-ext-install iconv mcrypt mysqli pdo pdo_mysql zip \
     && docker-php-ext-configure gd \
         --with-freetype-dir=/usr/include/ \
         --with-jpeg-dir=/usr/include/ \
     && docker-php-ext-install gd \
-# "清理"
+    && echo "清理" \
     && apt-get purge -y --auto-remove \
         -o APT::AutoRemove::RecommendsImportant=false \
         -o APT::AutoRemove::SuggestsImportant=false \
