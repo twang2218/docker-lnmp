@@ -1,4 +1,5 @@
 FROM php:7-fpm
+COPY sources.list /etc/apt/sources.list
 RUN set -xe \
     && echo "构建依赖" \
     && buildDeps=" \
