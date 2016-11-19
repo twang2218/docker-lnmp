@@ -5,9 +5,9 @@ if [ -z "${SWARM_SIZE}" ]; then
     SWARM_SIZE=3
 fi
 
-# By default, 'virtualbox' will be used, you can set 'DOCKER_MACHINE_DRIVER' to override it.
-if [ -z "${DOCKER_MACHINE_DRIVER}" ]; then
-    DOCKER_MACHINE_DRIVER=virtualbox
+# By default, 'virtualbox' will be used, you can set 'MACHINE_DRIVER' to override it.
+if [ -z "${MACHINE_DRIVER}" ]; then
+    export MACHINE_DRIVER=virtualbox
 fi
 
 # REGISTRY_MIRROR_OPTS="--engine-registry-mirror https://jxus37ac.mirror.aliyuncs.com"
@@ -20,20 +20,6 @@ MACHINE_OPTS="${STORAGE_OPTS} ${INSECURE_OPTS} ${REGISTRY_MIRROR_OPTS}"
 #      Image Management      #
 ##############################
 
-function build() {
-    # Build images
-    docker build --pull -t ${REGISTRY_USER}/lnmp-nginx:latest -f nginx-php/Dockerfile.nginx ./nginx-php
-    docker build --pull -t ${REGISTRY_USER}/lnmp-php:latest -f nginx-php/Dockerfile.php ./nginx-php
-    docker build --pull -t ${REGISTRY_USER}/lnmp-mysql:latest -f mysql/Dockerfile ./mysql
-}
-
-function push() {
-    # Push to the registry
-    docker push ${REGISTRY_USER}/lnmp-nginx:latest
-    docker push ${REGISTRY_USER}/lnmp-php:latest
-    docker push ${REGISTRY_USER}/lnmp-mysql:latest
-}
-
 function publish() {
     # Get username
     REGISTRY_USER=$(docker info | awk '/Username/ { print $2 }')
@@ -45,12 +31,8 @@ function publish() {
     fi
 
     # Build & Push
-    # More clean way would be:
-    #
-    #   docker-compose build && docker-compose push
-    #
-    # Just remember replace the 'twang2218' in the 'docker-compose.yml' with your hub username.
-    build && push
+    # Just remember replace the 'twang2218' in the '.env' with your hub username.
+    docker-compose build && docker-compose push
 }
 
 ##############################
@@ -59,7 +41,7 @@ function publish() {
 
 function create_assistant() {
     NAME=$1
-    docker-machine create -d ${DOCKER_MACHINE_DRIVER} ${MACHINE_OPTS} ${NAME}
+    docker-machine create ${MACHINE_OPTS} ${NAME}
     eval "$(docker-machine env ${NAME})"
     HostIP="$(docker-machine ip ${NAME})"
 
@@ -91,7 +73,7 @@ function create_master() {
     NAME=$1
     echo "kvstore is ${KVSTORE}"
     # eth1 on virtualbox, eth0 on digitalocean
-    docker-machine create -d ${DOCKER_MACHINE_DRIVER} ${MACHINE_OPTS} \
+    docker-machine create ${MACHINE_OPTS} \
         --swarm \
         --swarm-discovery=${KVSTORE} \
         --swarm-master \
@@ -104,7 +86,7 @@ function create_node() {
     NAME=$1
     echo "kvstore is ${KVSTORE}"
     # eth1 on virtualbox, eth0 on digitalocean
-    docker-machine create -d ${DOCKER_MACHINE_DRIVER} ${MACHINE_OPTS} \
+    docker-machine create ${MACHINE_OPTS} \
         --swarm \
         --swarm-discovery=${KVSTORE} \
         --engine-opt="cluster-store=${KVSTORE}" \
