@@ -266,7 +266,7 @@ services:
 
 如果需要应用级别的服务依赖等待，需要在 `entrypoint.sh` 这类脚本中，加入服务等待的部分。而且，也可以通过 `restart: always` 这种设置，让应用启动过程中，如果依赖服务为准备好，而报错退出后，有再一次尝试的机会。
 
-# 操作
+# 单机操作
 
 ## 启动
 
@@ -303,3 +303,94 @@ docker-compose logs
 ```bash
 docker-compose down
 ```
+
+# Swarm 集群编排
+
+在单机环境中使用容器，可能经常会用到绑定宿主目录的情况，这在开发时很方便。但是在集群环境中部署应用的时候，挂载宿主目录就变得非常不方便了。
+
+在集群环境中，Swarm 可能会调度容器运行于任何一台主机上，如果一个主机失败后，可能还会再次调度到别的主机上，确保服务可以继续。在这种情况下，如果使用绑定宿主目录的形式，就必须同时在所有主机上的相同位置，事先准备好其内容，并且要保持同步。这并不是一个好的解决方案。
+
+因此为了在集群环境中部署方便，比较好的做法是，将应用代码、配置文件等直接放入镜像。就如同这个例子中我们看到的 `nginx`、`php` 服务的镜像一样，在使用 `Dockerfile` 定制的过程中，将配置和应用代码放入镜像。
+
+`nginx` 的服务镜像 `Dockerfile`
+
+```Dockerfile
+...
+COPY ./nginx.conf /etc/nginx/conf.d/default.conf
+COPY ./site /usr/share/nginx/html
+```
+
+`php` 的服务镜像 `Dockerfile`
+
+```Dockerfile
+...
+COPY ./php.conf /usr/local/etc/php/conf.d/php.conf
+COPY ./site /usr/share/nginx/html
+```
+
+Docker Swarm 目前分为两代。第一代是以容器形式运行，被称为 Docker Swarm；而第二代是自 `1.12` 以后以 `SwarmKit` 为基础集成进 `docker` 的 Swarm，被称为 Docker Swarm Mode。
+
+## 一代 Swarm
+
+[一代 Swarm](https://docs.docker.com/swarm/) 是 Docker 团队最早的集群编排的尝试，以容器形式运行，需要外置键值库（如 etcd, consul, zookeeper），需要手动配置 `overlay` 网络。其配置比 `kubernetes` 要简单，但是相比后面的第二代来说还是稍显复杂。
+
+这里提供了一个脚本，`run.sh`，用于建立一代 Swarm，以及启动服务、横向扩展。
+
+### 建立 swarm 集群
+
+在安装有 `docker-machine` 以及 VirtualBox 的虚拟机上（比如装有 Docker Toolbox 的Mac/Windows），使用 `run.sh` 脚本即可创建集群：
+
+```bash
+./run.sh create
+```
+
+### 启动
+
+```bash
+./run.sh up
+```
+
+### 横向扩展
+
+```bash
+./run.sh scale 3 5
+```
+
+这里第一个参数是 nginx 容器的数量，第二个参数是 php 容器的数量。
+
+### 访问服务
+
+`nginx` 将会守候 80 端口。利用 `docker ps` 可以查看具体集群哪个节点在跑 nginx 以及 IP 地址。如
+
+```bash
+$ eval $(./run.sh env)
+$ docker ps
+CONTAINER ID        IMAGE                         COMMAND                  CREATED             STATUS              PORTS                                NAMES
+b7c38fb39723        twang2218/lnmp-php:latest     "php-fpm"                2 minutes ago       Up 2 minutes        9000/tcp                             node1/dockerlnmp_php_5
+b82f629c5fa0        twang2218/lnmp-php:latest     "php-fpm"                2 minutes ago       Up 2 minutes        9000/tcp                             master/dockerlnmp_php_3
+e1f1ebf383a3        twang2218/lnmp-php:latest     "php-fpm"                2 minutes ago       Up 2 minutes        9000/tcp                             node2/dockerlnmp_php_4
+a6f1ffd63394        twang2218/lnmp-php:latest     "php-fpm"                2 minutes ago       Up 2 minutes        9000/tcp                             node1/dockerlnmp_php_2
+c949792eedba        twang2218/lnmp-nginx:latest   "nginx -g 'daemon off"   2 minutes ago       Up 2 minutes        192.168.99.110:80->80/tcp, 443/tcp   node3/dockerlnmp_nginx_3
+096a3a47aa51        twang2218/lnmp-nginx:latest   "nginx -g 'daemon off"   2 minutes ago       Up 2 minutes        192.168.99.109:80->80/tcp, 443/tcp   master/dockerlnmp_nginx_2
+e0e8b56c34fe        twang2218/lnmp-nginx:latest   "nginx -g 'daemon off"   10 minutes ago      Up 2 minutes        192.168.99.112:80->80/tcp, 443/tcp   node2/dockerlnmp_nginx_1
+0f411d1342ec        twang2218/lnmp-php:latest     "php-fpm"                10 minutes ago      Up 2 minutes        9000/tcp                             node1/dockerlnmp_php_1
+dc1bb1e5ee59        twang2218/lnmp-mysql:latest   "docker-entrypoint.sh"   10 minutes ago      Up 2 minutes        3306/tcp                             node3/dockerlnmp_mysql_1
+```
+
+如这种情况，就可以使用 <http://192.168.99.109>, <http://192.168.99.110>, <http://192.168.99.112> 来访问服务。
+
+### 停止服务
+
+```bash
+./run.sh down
+```
+
+### 销毁集群
+
+```bash
+./run.sh remove
+```
+
+## 二代 Swarm (Swarm Mode)
+
+[二代 Swarm](https://docs.docker.com/engine/swarm/)，既 Docker Swarm Mode，是自 1.12 之后引入的原生的 Docker 集群编排机制。吸取一代 Swarm 的问题，大幅改变了架构，并且大大简化了集群构建。内置了分布式数据库，不在需要配置外置键值库；内置了内核级负载均衡；内置了边界负载均衡。
