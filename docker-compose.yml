@@ -3,7 +3,7 @@ services:
     nginx:
         image: "${DOCKER_USER}/lnmp-nginx:v1.2"
         build:
-            context: ./web
+            context: .
             dockerfile: Dockerfile.nginx
         ports:
             - "80:80"
@@ -14,7 +14,7 @@ services:
     php:
         image: "${DOCKER_USER}/lnmp-php:v1.2"
         build:
-            context: ./web
+            context: .
             dockerfile: Dockerfile.php
         networks:
             - frontend

@@ -15,13 +15,13 @@ services:
     nginx:
         image: "${DOCKER_USER}/lnmp-nginx:v1.0"
         build:
-            context: ./web
+            context: .
             dockerfile: Dockerfile.nginx
         ...
     php:
         image: "${DOCKER_USER}/lnmp-nginx:v1.0"
         build:
-            context: ./web
+            context: .
             dockerfile: Dockerfile.php
         ...
     mysql:
@@ -85,7 +85,7 @@ COPY ./site /usr/share/nginx/html
 
 `php` 服务较为特殊，由于官方 `php` 镜像未提供连接 `mysql` 所需的插件，所以 `php` 服务无法直接使用官方镜像。在这里，正好用其作为例子，演示如何基于官方镜像，安装插件，定制自己所需的镜像。
 
-对应的[`./web/Dockerfile.php`](https://coding.net/u/twang2218/p/docker-lnmp/git/blob/master/web/Dockerfile.php)：
+对应的[`Dockerfile.php`](https://coding.net/u/twang2218/p/docker-lnmp/git/blob/master/Dockerfile.php)：
 
 ```Dockerfile
 FROM php:7-fpm
