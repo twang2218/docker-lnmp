@@ -377,7 +377,7 @@ e92b34f998bf        twang2218/lnmp-nginx:v1.2   "nginx -g 'daemon off"   9 minut
 cf71bca309dd        mysql:5.7                   "docker-entrypoint.sh"   22 minutes ago      Up 22 minutes       3306/tcp                             node1/dockerlnmp_mysql_1
 ```
 
-如这种情况，就可以使用 <http://192.168.99.109>, <http://192.168.99.110>, <http://192.168.99.112> 来访问服务。
+如这种情况，就可以使用 <http://192.168.99.104>, <http://192.168.99.105>, <http://192.168.99.106> 来访问服务。
 
 ### 停止服务
 
