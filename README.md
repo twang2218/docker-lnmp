@@ -13,13 +13,13 @@
 ```yml
 services:
     nginx:
-        image: "${DOCKER_USER}/lnmp-nginx:v1.0"
+        image: "${DOCKER_USER}/lnmp-nginx:v1.2"
         build:
             context: .
             dockerfile: Dockerfile.nginx
         ...
     php:
-        image: "${DOCKER_USER}/lnmp-nginx:v1.0"
+        image: "${DOCKER_USER}/lnmp-php:v1.2"
         build:
             context: .
             dockerfile: Dockerfile.php
@@ -34,7 +34,7 @@ services:
 这里的镜像名看起来也有些不同：
 
 ```bash
-image: "${DOCKER_USER}/lnmp-nginx:v1.0"
+image: "${DOCKER_USER}/lnmp-nginx:v1.2"
 ```
 
 其中的 `${DOCKER_USER}` 这种用法是环境变量替换，当存在环境变量 `DOCKER_USER` 时，将会用其值替换 `${DOCKER_USER}`。而环境变量从哪里来呢？除了在 Shell 中 `export` 对应的环境变量外，Docker Compose 还支持一个默认的环境变量文件，既 `.env` 文件。你可以在项目中看到，`docker-compose.yml` 的同级目录下，存在一个 `.env` 文件，里面定义了环境变量。
@@ -364,17 +364,17 @@ Docker Swarm 目前分为两代。第一代是以容器形式运行，被称为 
 
 ```bash
 $ eval $(./run.sh env)
-$ docker ps
-CONTAINER ID        IMAGE                         COMMAND                  CREATED             STATUS              PORTS                                NAMES
-b7c38fb39723        twang2218/lnmp-php:latest     "php-fpm"                2 minutes ago       Up 2 minutes        9000/tcp                             node1/dockerlnmp_php_5
-b82f629c5fa0        twang2218/lnmp-php:latest     "php-fpm"                2 minutes ago       Up 2 minutes        9000/tcp                             master/dockerlnmp_php_3
-e1f1ebf383a3        twang2218/lnmp-php:latest     "php-fpm"                2 minutes ago       Up 2 minutes        9000/tcp                             node2/dockerlnmp_php_4
-a6f1ffd63394        twang2218/lnmp-php:latest     "php-fpm"                2 minutes ago       Up 2 minutes        9000/tcp                             node1/dockerlnmp_php_2
-c949792eedba        twang2218/lnmp-nginx:latest   "nginx -g 'daemon off"   2 minutes ago       Up 2 minutes        192.168.99.110:80->80/tcp, 443/tcp   node3/dockerlnmp_nginx_3
-096a3a47aa51        twang2218/lnmp-nginx:latest   "nginx -g 'daemon off"   2 minutes ago       Up 2 minutes        192.168.99.109:80->80/tcp, 443/tcp   master/dockerlnmp_nginx_2
-e0e8b56c34fe        twang2218/lnmp-nginx:latest   "nginx -g 'daemon off"   10 minutes ago      Up 2 minutes        192.168.99.112:80->80/tcp, 443/tcp   node2/dockerlnmp_nginx_1
-0f411d1342ec        twang2218/lnmp-php:latest     "php-fpm"                10 minutes ago      Up 2 minutes        9000/tcp                             node1/dockerlnmp_php_1
-dc1bb1e5ee59        twang2218/lnmp-mysql:latest   "docker-entrypoint.sh"   10 minutes ago      Up 2 minutes        3306/tcp                             node3/dockerlnmp_mysql_1
+$ docker ps                                                                                                                                          [d1fca56]
+CONTAINER ID        IMAGE                       COMMAND                  CREATED             STATUS              PORTS                                NAMES
+d85a2c26dd7d        twang2218/lnmp-php:v1.2     "php-fpm"                9 minutes ago       Up 9 minutes        9000/tcp                             node1/dockerlnmp_php_5
+c81e169c164d        twang2218/lnmp-php:v1.2     "php-fpm"                9 minutes ago       Up 9 minutes        9000/tcp                             node1/dockerlnmp_php_2
+b43de77c9340        twang2218/lnmp-php:v1.2     "php-fpm"                9 minutes ago       Up 9 minutes        9000/tcp                             master/dockerlnmp_php_4
+fdcb718b6183        twang2218/lnmp-php:v1.2     "php-fpm"                9 minutes ago       Up 9 minutes        9000/tcp                             node3/dockerlnmp_php_3
+764b10b17dc4        twang2218/lnmp-nginx:v1.2   "nginx -g 'daemon off"   9 minutes ago       Up 9 minutes        192.168.99.104:80->80/tcp, 443/tcp   master/dockerlnmp_nginx_3
+e92b34f998bf        twang2218/lnmp-nginx:v1.2   "nginx -g 'daemon off"   9 minutes ago       Up 9 minutes        192.168.99.106:80->80/tcp, 443/tcp   node2/dockerlnmp_nginx_2
+077ee73c8148        twang2218/lnmp-nginx:v1.2   "nginx -g 'daemon off"   22 minutes ago      Up 22 minutes       192.168.99.105:80->80/tcp, 443/tcp   node3/dockerlnmp_nginx_1
+1931249a66c1        e8920543aee8                "php-fpm"                22 minutes ago      Up 22 minutes       9000/tcp                             node2/dockerlnmp_php_1
+cf71bca309dd        mysql:5.7                   "docker-entrypoint.sh"   22 minutes ago      Up 22 minutes       3306/tcp                             node1/dockerlnmp_mysql_1
 ```
 
 如这种情况，就可以使用 <http://192.168.99.109>, <http://192.168.99.110>, <http://192.168.99.112> 来访问服务。
