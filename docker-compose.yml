@@ -19,6 +19,8 @@ services:
         networks:
             - frontend
             - backend
+        environment:
+            MYSQL_PASSWORD: Passw0rd
         depends_on:
             - mysql
     mysql:

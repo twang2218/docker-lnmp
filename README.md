@@ -194,22 +194,23 @@ services:
 
 ```php
 <?php
-$servername = "mysql";
-$username = "root";
-$password = "Passw0rd";
-
-// Create connection
-$conn = new mysqli($servername, $username, $password);
-
-// Check connection
-if ($conn->connect_error) {
-    die("连接错误: " . $conn->connect_error);
-}
-echo "<h1>成功连接 MySQL 服务器</h1>";
-
-phpinfo();
-
+// 建立连接
+$conn = mysqli_connect("mysql", "root", $_ENV["MYSQL_PASSWORD"]);
+...
 ?>
+```
+
+可以注意到，在这段数据库连接的代码里，数据库密码是通过环境变量，`$_ENV["MYSQL_PASSWORD"]`，读取的，因此密码并非写死于代码中。在运行时，可以通过环境变量将实际环境的密码传入容器。在这个例子里，就是在 `docker-compose.yml` 文件中指定的环境变量：
+
+```yml
+version: '2'
+services:
+...
+    php:
+...
+        environment:
+            MYSQL_PASSWORD: Passw0rd
+...
 ```
 
 关于 Docker 自定义网络，可以看一下官方文档的介绍：
@@ -298,6 +299,10 @@ docker-compose logs
 * 如果是使用 `Docker Toolbox` 的话，则应该使用虚拟机地址，如 <http://192.168.99.100>，具体虚拟机地址查询使用命令 `docker-machine ip default`。
 * 如果是自己安装的 Ubuntu、CentOS 类的虚拟机，直接进虚拟机查看地址。
 
+如果访问后，看到了 `成功连接 MySQL 服务器` 就说明数据库连接正常。
+
+
+
 ## 停止服务
 
 ```bash
@@ -334,26 +339,26 @@ Docker Swarm 目前分为两代。第一代是以容器形式运行，被称为 
 
 [一代 Swarm](https://docs.docker.com/swarm/) 是 Docker 团队最早的集群编排的尝试，以容器形式运行，需要外置键值库（如 etcd, consul, zookeeper），需要手动配置 `overlay` 网络。其配置比 `kubernetes` 要简单，但是相比后面的第二代来说还是稍显复杂。
 
-这里提供了一个脚本，`run.sh`，用于建立一代 Swarm，以及启动服务、横向扩展。
+这里提供了一个脚本，`run1.sh`，用于建立一代 Swarm，以及启动服务、横向扩展。
 
 ### 建立 swarm 集群
 
-在安装有 `docker-machine` 以及 VirtualBox 的虚拟机上（比如装有 Docker Toolbox 的Mac/Windows），使用 `run.sh` 脚本即可创建集群：
+在安装有 `docker-machine` 以及 VirtualBox 的虚拟机上（比如装有 Docker Toolbox 的Mac/Windows），使用 `run1.sh` 脚本即可创建集群：
 
 ```bash
-./run.sh create
+./run1.sh create
 ```
 
 ### 启动
 
 ```bash
-./run.sh up
+./run1.sh up
 ```
 
 ### 横向扩展
 
 ```bash
-./run.sh scale 3 5
+./run1.sh scale 3 5
 ```
 
 这里第一个参数是 nginx 容器的数量，第二个参数是 php 容器的数量。
@@ -363,7 +368,7 @@ Docker Swarm 目前分为两代。第一代是以容器形式运行，被称为 
 `nginx` 将会守候 80 端口。利用 `docker ps` 可以查看具体集群哪个节点在跑 nginx 以及 IP 地址。如
 
 ```bash
-$ eval $(./run.sh env)
+$ eval $(./run1.sh env)
 $ docker ps                                                                                                                                          [d1fca56]
 CONTAINER ID        IMAGE                       COMMAND                  CREATED             STATUS              PORTS                                NAMES
 d85a2c26dd7d        twang2218/lnmp-php:v1.2     "php-fpm"                9 minutes ago       Up 9 minutes        9000/tcp                             node1/dockerlnmp_php_5
@@ -382,13 +387,13 @@ cf71bca309dd        mysql:5.7                   "docker-entrypoint.sh"   22 minu
 ### 停止服务
 
 ```bash
-./run.sh down
+./run1.sh down
 ```
 
 ### 销毁集群
 
 ```bash
-./run.sh remove
+./run1.sh remove
 ```
 
 ## 二代 Swarm (Swarm Mode)
