@@ -369,7 +369,7 @@ Docker Swarm 目前分为两代。第一代是以容器形式运行，被称为 
 
 ```bash
 $ eval $(./run1.sh env)
-$ docker ps                                                                                                                                          [d1fca56]
+$ docker ps
 CONTAINER ID        IMAGE                       COMMAND                  CREATED             STATUS              PORTS                                NAMES
 d85a2c26dd7d        twang2218/lnmp-php:v1.2     "php-fpm"                9 minutes ago       Up 9 minutes        9000/tcp                             node1/dockerlnmp_php_5
 c81e169c164d        twang2218/lnmp-php:v1.2     "php-fpm"                9 minutes ago       Up 9 minutes        9000/tcp                             node1/dockerlnmp_php_2
@@ -399,3 +399,95 @@ cf71bca309dd        mysql:5.7                   "docker-entrypoint.sh"   22 minu
 ## 二代 Swarm (Swarm Mode)
 
 [二代 Swarm](https://docs.docker.com/engine/swarm/)，既 Docker Swarm Mode，是自 1.12 之后引入的原生的 Docker 集群编排机制。吸取一代 Swarm 的问题，大幅改变了架构，并且大大简化了集群构建。内置了分布式数据库，不在需要配置外置键值库；内置了内核级负载均衡；内置了边界负载均衡。
+
+和一代 Swarm 的例子一样，为了方便说明，这里提供了一个 `run2.sh` 来帮助建立集群、运行服务。
+
+### 建立 swarm 集群
+
+在安装有 `docker-machine` 以及 VirtualBox 的虚拟机上（比如装有 Docker Toolbox 的Mac/Windows），使用 `run2.sh` 脚本即可创建集群：
+
+```bash
+./run2.sh create
+```
+
+*使用 Digital Ocean, AWS之类的云服务的话，就没必要本地使用 VirtualBox，不过需要事先配置好对应的 `docker-machine` 所需的环境变量。*
+
+### 启动
+
+```bash
+./run2.sh up
+```
+
+### 横向扩展
+
+```bash
+./run2.sh scale 10 5
+```
+
+这里第一个参数是 nginx 容器的数量，第二个参数是 php 容器的数量。
+
+### 列出服务状态
+
+我们可以使用标准的命令列出所有服务以及状态：
+
+```bash
+$ docker service ls
+ID            NAME   REPLICAS  IMAGE                      COMMAND
+2lnqjas6rov4  mysql  1/1       mysql:5.7                  mysqld --character-set-server=utf8
+ahqktnscjlkl  php    5/5       twang2218/lnmp-php:v1.2
+bhoodda99ebt  nginx  10/10     twang2218/lnmp-nginx:v1.2
+```
+
+我们也可以通过下面的命令列出具体的每个服务对应的每个容器状态：
+
+```bash
+$ ./run2.sh ps
++ docker service ps -f desired-state=running nginx
+ID                         NAME      IMAGE                      NODE     DESIRED STATE  CURRENT STATE           ERROR
+87xr5oa577hl9amelznpy7s7z  nginx.1   twang2218/lnmp-nginx:v1.2  node2    Running        Running 3 hours ago
+7dwmc22qaftz0xrvijij9dnuw  nginx.2   twang2218/lnmp-nginx:v1.2  node3    Running        Running 22 minutes ago
+00rus0xed3y851pcwkbybop80  nginx.3   twang2218/lnmp-nginx:v1.2  manager  Running        Running 22 minutes ago
+5ypct2dnfu6ducnokdlk82dne  nginx.4   twang2218/lnmp-nginx:v1.2  manager  Running        Running 22 minutes ago
+7qshykjq8cqju0zt6yb9dkktq  nginx.5   twang2218/lnmp-nginx:v1.2  node2    Running        Running 22 minutes ago
+e2cux4vj2femrb3wc33cvm70n  nginx.6   twang2218/lnmp-nginx:v1.2  node1    Running        Running 22 minutes ago
+9uwbn5tm49k7vxesucym4plct  nginx.7   twang2218/lnmp-nginx:v1.2  node1    Running        Running 22 minutes ago
+6d8v5asrqwnz03hvm2jh96rq3  nginx.8   twang2218/lnmp-nginx:v1.2  node1    Running        Running 22 minutes ago
+eh44qdsiv7wq8jbwh2sr30ada  nginx.9   twang2218/lnmp-nginx:v1.2  node3    Running        Running 22 minutes ago
+51l7nirwtv4gxnzbhkx6juvko  nginx.10  twang2218/lnmp-nginx:v1.2  node2    Running        Running 22 minutes ago
++ docker service ps -f desired-state=running php
+ID                         NAME   IMAGE                    NODE     DESIRED STATE  CURRENT STATE           ERROR
+4o3pqdva92vjdbfygdn0agp32  php.1  twang2218/lnmp-php:v1.2  manager  Running        Running 3 hours ago
+bf3d6g4rr8cax4wucu9lixgmh  php.2  twang2218/lnmp-php:v1.2  node3    Running        Running 22 minutes ago
+9xq9ozbpea7evllttvyxk7qtf  php.3  twang2218/lnmp-php:v1.2  manager  Running        Running 22 minutes ago
+8umths3p8rqib0max6b6wiszv  php.4  twang2218/lnmp-php:v1.2  node2    Running        Running 22 minutes ago
+0fxe0i1n2sp9nlvfgu4xlc0fx  php.5  twang2218/lnmp-php:v1.2  node1    Running        Running 22 minutes ago
++ docker service ps -f desired-state=running mysql
+ID                         NAME     IMAGE      NODE   DESIRED STATE  CURRENT STATE        ERROR
+3ozjwfgwfcq89mu7tqzi1hqeu  mysql.1  mysql:5.7  node3  Running        Running 3 hours ago
+```
+
+### 访问服务
+
+`nginx` 将会守候 80 端口，由于二代 Swarm 具有边界负载均衡 (Routing Mesh, Ingress Load balance)，因此，集群内所有节点都会守护 80 端口，无论是 Manager 还是 Worker，无论是否有 `nginx` 容器在其上运行。当某个节点接到 80 端口服务请求后，会自动根据容器所在位置，利用 overlay 网络将请求转发过去。因此，访问任意节点的 80 端口都应该可以看到服务。
+
+通过下面的命令可以列出所有节点，访问其中任意地址都应该可以看到应用页面：
+
+```bash
+$ ./run2.sh nodes
+manager   http://192.168.99.101
+node1     http://192.168.99.103
+node2     http://192.168.99.102
+node3     http://192.168.99.104
+```
+
+### 停止服务
+
+```bash
+./run2.sh down
+```
+
+### 销毁集群
+
+```bash
+./run2.sh remove
+```
