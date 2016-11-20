@@ -107,7 +107,7 @@ function remove() {
     do
         docker-machine rm -y node${i} || true
     done
-    docker-machine rm -y master || true
+    docker-machine rm -y manager || true
     docker-machine rm -y assistant || true
 }
 
