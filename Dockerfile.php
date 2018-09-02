@@ -1,4 +1,4 @@
-FROM php:7-fpm
+FROM php:7.0-fpm-jessie
 
 ENV TZ=Asia/Shanghai
 
@@ -8,7 +8,7 @@ RUN set -xe \
     && echo "构建依赖" \
     && buildDeps=" \
         build-essential \
-        php5-dev \
+        dh-php5 \
         libfreetype6-dev \
         libjpeg62-turbo-dev \
         libmcrypt-dev \
